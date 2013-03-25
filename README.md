@@ -1,4 +1,5 @@
-= sMAP Support for Keti environmental sensing motes =
+sMAP Support for Keti environmental sensing motes
+=================================================
 
 To start an example driver, make sure you have a recent version of
 sMAP and then in this directory:
