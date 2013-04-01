@@ -97,7 +97,7 @@ class KetiMoteReceiver(TOSSerialClient):
             data.update({
                 'pir': pir
                 })
-        elif type == self.TYPE_CO2:
+        elif typ == self.TYPE_CO2:
             ppm, = struct.unpack(">H", sensor[:2])
             data.update({
                 'co2': co2
