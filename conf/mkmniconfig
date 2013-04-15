@@ -1,0 +1,65 @@
+#!/usr/bin/python
+# -*- python -*-
+
+import sys
+import re
+import collections
+import os
+motes = []
+
+basename = sys.argv[1]
+
+for l in sys.stdin.readlines():
+    pieces = re.split('[ \t]+', l.strip())
+    motes.append(pieces)
+
+mote_config = open(basename + '_quanto.ini', 'w')
+smap_config = open(basename + '_smap.ini', 'w')
+
+print >>mote_config, """
+[Nodes]
+numNodes: %i
+type: QuantoTestbedMote
+makeCmd: make epic
+""" % len(motes)
+
+print >>smap_config, """
+[/]
+uuid = c6c45e38-9352-11e2-9103-0026bb56ec92
+Metadata/SourceName = KETI Motes
+"""
+
+for i, m in enumerate(motes):
+    mid = m[4][4:].split('-')
+    if len(mid) == 1:
+        mid = int(mid[0])
+    else:
+        mid = int("%i%02i" % tuple(map(int, mid)))
+        
+    params = {  'idx': i,
+                'id': mid,
+                'serial': m[1],
+                'ip': m[0],
+                'path': '/' + m[1].split('/')[-1]}
+    if not os.access(params['serial'], os.W_OK | os.R_OK):
+        print "skipping", params['serial'], "-- permissions problem?"
+        continue
+
+    print >>mote_config, """
+[Node%(idx)i]
+id: %(id)i
+ip: %(ip)s
+serial: %(serial)s
+installCmd: make epic digi reinstall,%(id)i bsl,%(serial)s
+""" % params
+
+    print >>smap_config, """
+[%(path)s]
+type = keti.KetiDriver
+Namespace = c6c45e38-9352-11e2-9103-0026bb56ec92
+SerialPort = %(serial)s
+# BaudRate = 115200
+""" % params
+
+mote_config.close()
+

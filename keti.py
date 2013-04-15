@@ -57,6 +57,7 @@ class KetiMoteReceiver(TOSSerialClient):
     SHT11_C1 = -4.0
     SHT11_C2 = 0.0405
     SHT11_C3 = -2.8e-6
+    SEQUENCE_CACHE = set([])
 
     def __init__(self, consumer):
         self.consumer = consumer
@@ -68,6 +69,10 @@ class KetiMoteReceiver(TOSSerialClient):
 
         # pull apart the packet header, ignoring the tinyos part
         typ, serial_id, node_id, seq, bat, sensor = struct.unpack(">H6sHHH6s", pkt[9:29])
+        if (node_id, seq) in KetiMoteReceiver.SEQUENCE_CACHE:
+            return
+        else:
+            KetiMoteReceiver.SEQUENCE_CACHE.add((node_id, seq))
 
         data  = {
             'serial_id': serial_id,
@@ -140,6 +145,7 @@ class KetiDriver(SmapDriver):
                                     self.uuid(msg['serial_id'], name),
                                     unit, data_type=dtype)
             self.set_metadata('/' + str(msg['node_id']), {
+                'Metadata/Instrument/PartNumber': str(msg['node_id']),
                 'Metadata/Instrument/SerialNumber': ':'.join(map(lambda x: hex(ord(x))[2:],
                                                                 msg['serial_id']))
                 })
