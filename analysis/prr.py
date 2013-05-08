@@ -42,19 +42,20 @@ import matplotlib.pyplot as plt
 c = SmapClient('http://ar1.openbms.org:8079')
 
 HOURS = 5
-RATES = [("#", 10), ("ppm", 5), ("C", 5)]
+RATES = [#("#", 10), 
+         ("ppm", 5), ("C", 5)]
 
 prrs = []
 for unit, rate in RATES:
     counts = c.query(("apply count to data in now -%ih, now "
                       "limit -1 streamlimit 1000 where "
                       "Properties/UnitofMeasure = '%s' and "
-                      "Metadata/SourceName = 'KETI Motes'") % 
+                      "Metadata/SourceName = 'KETI Motes'") %
                      (HOURS, unit))
     for v in counts:
         r = np.array(v['Readings'])
         if len(r):
-            prrs.append(np.sum(r[:, 1]) / (3600 * HOURS / rate))
+            prrs.append(np.sum(r[:, 1]) / (3600 * (HOURS) / rate))
 
 plt.hist(prrs, bins=25)
 plt.show()
